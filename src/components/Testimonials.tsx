@@ -1,0 +1,188 @@
+import { Star, Quote } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
+
+const Testimonials = () => {
+  const plugin = useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  );
+
+  const testimonials = [
+    {
+      id: 1,
+      name: "Marie Dubois",
+      role: "Développeuse Full Stack chez TechCorp",
+      formation: "Développement Web Full Stack",
+      content: "Grâce à Infotelcom, j'ai pu me reconvertir dans le développement web. Les formateurs sont exceptionnels et le programme très complet. J'ai trouvé un emploi 2 semaines après ma formation !",
+      rating: 5,
+      avatar: "/placeholder.svg",
+      company: "TechCorp"
+    },
+    {
+      id: 2,
+      name: "Ahmed Ben Ali",
+      role: "Expert en Cybersécurité chez SecureIT",
+      formation: "Cybersécurité & Ethical Hacking",
+      content: "La formation en cybersécurité m'a permis d'acquérir des compétences pointues. Les travaux pratiques sont très réalistes et préparent vraiment au monde professionnel.",
+      rating: 5,
+      avatar: "/placeholder.svg",
+      company: "SecureIT"
+    },
+    {
+      id: 3,
+      name: "Sophie Martin",
+      role: "Digital Marketing Manager chez CreativeAgency",
+      formation: "Marketing Digital & Design",
+      content: "Formation complète qui m'a donné toutes les clés pour réussir dans le marketing digital. L'équipe pédagogique est à l'écoute et les projets très concrets.",
+      rating: 5,
+      avatar: "/placeholder.svg",
+      company: "CreativeAgency"
+    },
+    {
+      id: 4,
+      name: "Thomas Leroux",
+      role: "Data Scientist chez DataFlow",
+      formation: "Intelligence Artificielle",
+      content: "Un programme d'IA vraiment poussé avec des cas d'usage réels. J'ai pu monter en compétences rapidement et décrocher le poste de mes rêves en data science.",
+      rating: 5,
+      avatar: "/placeholder.svg",
+      company: "DataFlow"
+    },
+    {
+      id: 5,
+      name: "Laura Petit",
+      role: "UX Designer chez DesignStudio",
+      formation: "UX/UI Design",
+      content: "Excellente formation qui couvre tous les aspects du design UX/UI. Les méthodes enseignées sont modernes et directement applicables en entreprise.",
+      rating: 5,
+      avatar: "/placeholder.svg",
+      company: "DesignStudio"
+    },
+    {
+      id: 6,
+      name: "Karim Mansouri",
+      role: "DevOps Engineer chez CloudTech",
+      formation: "DevOps & Cloud Computing",
+      content: "Formation très technique avec de nombreux labs pratiques. J'ai pu maîtriser AWS et Kubernetes rapidement. Recommandé pour tous ceux qui veulent se spécialiser en DevOps.",
+      rating: 5,
+      avatar: "/placeholder.svg",
+      company: "CloudTech"
+    }
+  ];
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex space-x-1">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            className={`w-4 h-4 ${
+              i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <section id="témoignages" className="py-20 bg-gradient-secondary">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
+            Témoignages
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Découvrez les retours de nos anciens étudiants qui ont réussi leur reconversion 
+            professionnelle grâce à nos formations.
+          </p>
+        </div>
+
+        <Carousel
+          plugins={[plugin.current]}
+          className="w-full max-w-7xl mx-auto"
+          onMouseEnter={plugin.current.stop}
+          onMouseLeave={plugin.current.reset}
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {testimonials.map((testimonial, index) => (
+              <CarouselItem key={testimonial.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                <Card className="relative p-6 border-0 bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in overflow-hidden h-full">
+                  <CardContent className="p-0">
+                    {/* Quote Icon */}
+                    <div className="absolute top-4 right-4 opacity-10">
+                      <Quote className="w-8 h-8 text-primary" />
+                    </div>
+
+                    {/* Rating */}
+                    <div className="mb-4">
+                      {renderStars(testimonial.rating)}
+                    </div>
+
+                    {/* Content */}
+                    <p className="text-muted-foreground mb-6 leading-relaxed italic text-sm">
+                      "{testimonial.content}"
+                    </p>
+
+                    {/* Author Info */}
+                    <div className="flex items-start space-x-4">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                        <AvatarFallback className="bg-gradient-primary text-white font-semibold">
+                          {testimonial.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                        <p className="text-sm text-primary font-medium">{testimonial.role}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Formation: {testimonial.formation}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Company Badge */}
+                    <div className="mt-4 inline-block">
+                      <span className="px-3 py-1 bg-gradient-secondary text-xs font-medium text-primary rounded-full">
+                        {testimonial.company}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex" />
+        </Carousel>
+
+        {/* Success Stats */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="text-center animate-fade-in">
+            <div className="text-4xl font-bold text-primary mb-2">95%</div>
+            <div className="text-muted-foreground">Taux de satisfaction</div>
+          </div>
+          <div className="text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="text-4xl font-bold text-primary mb-2">4.8/5</div>
+            <div className="text-muted-foreground">Note moyenne</div>
+          </div>
+          <div className="text-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="text-4xl font-bold text-primary mb-2">92%</div>
+            <div className="text-muted-foreground">Recommandent nos formations</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Testimonials;
