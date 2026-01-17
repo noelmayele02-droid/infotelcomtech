@@ -1,5 +1,7 @@
 import { Target, Users, Award, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { ScrollAnimationWrapper, ParallaxWrapper, ScaleOnScroll, staggerContainer, staggerItem } from "./ScrollAnimationWrapper";
 
 const About = () => {
   const values = [
@@ -33,22 +35,36 @@ const About = () => {
   ];
 
   return (
-    <section id="apropos" className="py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="apropos" className="py-20 bg-white relative overflow-hidden">
+      {/* Floating background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <ParallaxWrapper speed={0.3}>
+          <div className="absolute top-20 right-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        </ParallaxWrapper>
+        <ParallaxWrapper speed={-0.2}>
+          <div className="absolute bottom-40 left-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        </ParallaxWrapper>
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
+          <ScrollAnimationWrapper className="text-center mb-16">
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent"
+              whileInView={{ scale: [0.9, 1.02, 1] }}
+              transition={{ duration: 0.6 }}
+            >
               À propos d'Infotelcom
-            </h2>
+            </motion.h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Depuis 2023, Infotelcom forme les professionnels du numérique de demain. 
               Notre mission est de démocratiser l'accès aux compétences technologiques.
             </p>
-          </div>
+          </ScrollAnimationWrapper>
 
           {/* Story Section */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
-            <div className="animate-fade-in">
+            <ScrollAnimationWrapper direction="left">
               <h3 className="text-3xl font-bold mb-6 text-foreground">
                 Notre Histoire
               </h3>
@@ -66,65 +82,110 @@ const About = () => {
                 <p>
                   Ensemble, cette équipe dynamique a développé une vision commune : démocratiser 
                   l'accès aux formations technologiques de qualité tout en étant basés sur la 
-                  résolution des problèmes des différentes entreprises. Depuis notre création, nous 
-                  proposons des formations spécialisées allant du développement web à la cybersécurité, 
-                  en passant par le marketing digital, l'administration réseau, le réseau informatique 
-                  et la télécommunication.
+                  résolution des problèmes des différentes entreprises.
                 </p>
                 <p>
                   Avec plus de 500 diplômés et un taux d'insertion professionnelle de 95%, 
                   Infotelcom est devenu une référence dans la formation numérique au Congo.
                 </p>
               </div>
-            </div>
+            </ScrollAnimationWrapper>
             
-            <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="grid grid-cols-2 gap-6">
+            <ScrollAnimationWrapper direction="right" delay={0.2}>
+              <motion.div 
+                className="grid grid-cols-2 gap-6"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true }}
+              >
                 {stats.map((stat, index) => (
-                  <Card key={index} className="text-center p-6 border-0 bg-gradient-secondary hover:shadow-lg transition-shadow duration-300">
-                    <CardContent className="p-0">
-                      <div className="text-3xl font-bold text-primary mb-2">{stat.number}</div>
-                      <div className="text-sm text-muted-foreground">{stat.label}</div>
-                    </CardContent>
-                  </Card>
+                  <motion.div key={index} variants={staggerItem}>
+                    <Card className="text-center p-6 border-0 bg-gradient-secondary hover:shadow-lg transition-shadow duration-300">
+                      <CardContent className="p-0">
+                        <motion.div 
+                          className="text-3xl font-bold text-primary mb-2"
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          {stat.number}
+                        </motion.div>
+                        <div className="text-sm text-muted-foreground">{stat.label}</div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </ScrollAnimationWrapper>
           </div>
 
           {/* Values Section */}
           <div className="mb-16">
-            <h3 className="text-3xl font-bold text-center mb-12 text-foreground">
-              Nos Valeurs
-            </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <ScrollAnimationWrapper className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-foreground">
+                Nos Valeurs
+              </h3>
+            </ScrollAnimationWrapper>
+            
+            <motion.div 
+              className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-50px" }}
+            >
               {values.map((value, index) => (
-                <Card 
-                  key={index} 
-                  className="text-center p-6 border-0 bg-gradient-secondary hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <CardContent className="p-0">
-                    <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                      <value.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h4 className="text-lg font-semibold mb-3 text-foreground">{value.title}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
-                  </CardContent>
-                </Card>
+                <motion.div key={index} variants={staggerItem}>
+                  <motion.div
+                    whileHover={{ y: -10, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Card className="text-center p-6 border-0 bg-gradient-secondary hover:shadow-xl transition-all duration-300 h-full">
+                      <CardContent className="p-0">
+                        <motion.div 
+                          className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4"
+                          whileHover={{ rotate: 360, scale: 1.1 }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <value.icon className="w-8 h-8 text-white" />
+                        </motion.div>
+                        <h4 className="text-lg font-semibold mb-3 text-foreground">{value.title}</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{value.description}</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
 
           {/* Mission Section */}
-          <div className="text-center bg-gradient-primary rounded-2xl p-8 md:p-12 text-white animate-fade-in">
-            <h3 className="text-3xl font-bold mb-6">Notre Mission</h3>
-            <p className="text-xl leading-relaxed max-w-4xl mx-auto opacity-90">
-              Rendre accessible la formation numérique de qualité à tous, en proposant des 
-              programmes innovants qui préparent nos étudiants aux défis technologiques de demain. 
-              Nous croyons que chacun mérite d'avoir sa place dans la révolution numérique.
-            </p>
-          </div>
+          <ScaleOnScroll>
+            <motion.div 
+              className="text-center bg-gradient-primary rounded-2xl p-8 md:p-12 text-white"
+              whileHover={{ scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.h3 
+                className="text-3xl font-bold mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                Notre Mission
+              </motion.h3>
+              <motion.p 
+                className="text-xl leading-relaxed max-w-4xl mx-auto opacity-90"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                Rendre accessible la formation numérique de qualité à tous, en proposant des 
+                programmes innovants qui préparent nos étudiants aux défis technologiques de demain. 
+                Nous croyons que chacun mérite d'avoir sa place dans la révolution numérique.
+              </motion.p>
+            </motion.div>
+          </ScaleOnScroll>
         </div>
       </div>
     </section>
