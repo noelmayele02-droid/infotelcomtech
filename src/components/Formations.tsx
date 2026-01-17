@@ -2,6 +2,8 @@ import { Clock, Users, Award, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { ScrollAnimationWrapper, staggerContainer, staggerItem } from "./ScrollAnimationWrapper";
 import formationDev from "@/assets/formation-dev.jpg";
 import formationCyber from "@/assets/formation-cyber.jpg";
 import formationMarketing from "@/assets/formation-marketing.jpg";
@@ -132,94 +134,137 @@ const Formations = () => {
   };
 
   return (
-    <section id="formations" className="py-20 bg-gradient-secondary">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
+    <section id="formations" className="py-20 bg-gradient-secondary relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            rotate: [0, -90, 0]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <ScrollAnimationWrapper className="text-center mb-16">
+          <motion.h2 
+            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent"
+            whileInView={{ scale: [0.9, 1.02, 1] }}
+            transition={{ duration: 0.6 }}
+          >
             Nos Formations
-          </h2>
+          </motion.h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Découvrez notre catalogue de formations conçues pour vous préparer aux métiers du numérique. 
             Chaque programme est adapté aux besoins actuels du marché.
           </p>
-        </div>
+        </ScrollAnimationWrapper>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           {formations.map((formation, index) => (
-            <Card 
-              key={formation.id} 
-              className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white border-0 overflow-hidden animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+            <motion.div
+              key={formation.id}
+              variants={staggerItem}
+              whileHover={{ y: -10, transition: { duration: 0.3 } }}
             >
-              <div className="relative overflow-hidden">
-                <img 
-                  src={formation.image} 
-                  alt={formation.title}
-                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute top-4 left-4">
-                  <Badge variant={getBadgeVariant(formation.badge)} className="font-semibold">
-                    {formation.badge}
-                  </Badge>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                  {formation.title}
-                </CardTitle>
-                <CardDescription className="text-muted-foreground leading-relaxed">
-                  {formation.description}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {formation.skills.slice(0, 3).map((skill) => (
-                    <Badge key={skill} variant="outline" className="text-xs">
-                      {skill}
+              <Card className="group hover:shadow-xl transition-all duration-300 bg-white border-0 overflow-hidden h-full">
+                <div className="relative overflow-hidden">
+                  <motion.img 
+                    src={formation.image} 
+                    alt={formation.title}
+                    className="w-full h-48 object-cover"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  <div className="absolute top-4 left-4">
+                    <Badge variant={getBadgeVariant(formation.badge)} className="font-semibold">
+                      {formation.badge}
                     </Badge>
-                  ))}
-                  {formation.skills.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{formation.skills.length - 3}
-                    </Badge>
-                  )}
+                  </div>
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-2 text-primary" />
-                    {formation.duration}
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 mr-2 text-primary" />
-                    {formation.students}
-                  </div>
-                  <div className="flex items-center">
-                    <Award className="w-4 h-4 mr-2 text-primary" />
-                    {formation.level}
-                  </div>
-                  <div className="font-semibold text-primary">
-                    {formation.price}
-                  </div>
-                </div>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    {formation.title}
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground leading-relaxed">
+                    {formation.description}
+                  </CardDescription>
+                </CardHeader>
                 
-                <Button className="w-full mt-6 bg-gradient-primary hover:opacity-90 transition-opacity group">
-                  En savoir plus
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </CardContent>
-            </Card>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {formation.skills.slice(0, 3).map((skill) => (
+                      <Badge key={skill} variant="outline" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                    {formation.skills.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{formation.skills.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-2 text-primary" />
+                      {formation.duration}
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-2 text-primary" />
+                      {formation.students}
+                    </div>
+                    <div className="flex items-center">
+                      <Award className="w-4 h-4 mr-2 text-primary" />
+                      {formation.level}
+                    </div>
+                    <div className="font-semibold text-primary">
+                      {formation.price}
+                    </div>
+                  </div>
+                  
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button className="w-full mt-6 bg-gradient-primary hover:opacity-90 transition-opacity group">
+                      En savoir plus
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="text-center mt-12">
-          <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300">
-            Voir toutes les formations
-          </Button>
-        </div>
+        <ScrollAnimationWrapper className="text-center mt-12" delay={0.3}>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300">
+              Voir toutes les formations
+            </Button>
+          </motion.div>
+        </ScrollAnimationWrapper>
       </div>
     </section>
   );

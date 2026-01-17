@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
+import { motion } from "framer-motion";
+import { ScrollAnimationWrapper, staggerContainer, staggerItem } from "./ScrollAnimationWrapper";
 
 const Testimonials = () => {
   const plugin = useRef(
@@ -83,29 +85,59 @@ const Testimonials = () => {
     return (
       <div className="flex space-x-1">
         {[...Array(5)].map((_, i) => (
-          <Star
+          <motion.div
             key={i}
-            className={`w-4 h-4 ${
-              i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-            }`}
-          />
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Star
+              className={`w-4 h-4 ${
+                i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+              }`}
+            />
+          </motion.div>
         ))}
       </div>
     );
   };
 
   return (
-    <section id="témoignages" className="py-20 bg-gradient-secondary">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
+    <section id="témoignages" className="py-20 bg-gradient-secondary relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-0 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl"
+          animate={{ 
+            y: [0, 50, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl"
+          animate={{ 
+            y: [0, -30, 0],
+            scale: [1.1, 1, 1.1]
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <ScrollAnimationWrapper className="text-center mb-16">
+          <motion.h2 
+            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent"
+            whileInView={{ scale: [0.9, 1.02, 1] }}
+            transition={{ duration: 0.6 }}
+          >
             Témoignages
-          </h2>
+          </motion.h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Découvrez les retours de nos anciens étudiants qui ont réussi leur reconversion 
             professionnelle grâce à nos formations.
           </p>
-        </div>
+        </ScrollAnimationWrapper>
 
         <Carousel
           plugins={[plugin.current]}
@@ -116,48 +148,63 @@ const Testimonials = () => {
           <CarouselContent className="-ml-2 md:-ml-4">
             {testimonials.map((testimonial, index) => (
               <CarouselItem key={testimonial.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                <Card className="relative p-6 border-0 bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in overflow-hidden h-full">
-                  <CardContent className="p-0">
-                    {/* Quote Icon */}
-                    <div className="absolute top-4 right-4 opacity-10">
-                      <Quote className="w-8 h-8 text-primary" />
-                    </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                >
+                  <Card className="relative p-6 border-0 bg-white hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
+                    <CardContent className="p-0">
+                      {/* Quote Icon */}
+                      <motion.div 
+                        className="absolute top-4 right-4 opacity-10"
+                        whileHover={{ opacity: 0.3, scale: 1.2 }}
+                      >
+                        <Quote className="w-8 h-8 text-primary" />
+                      </motion.div>
 
-                    {/* Rating */}
-                    <div className="mb-4">
-                      {renderStars(testimonial.rating)}
-                    </div>
-
-                    {/* Content */}
-                    <p className="text-muted-foreground mb-6 leading-relaxed italic text-sm">
-                      "{testimonial.content}"
-                    </p>
-
-                    {/* Author Info */}
-                    <div className="flex items-start space-x-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                        <AvatarFallback className="bg-gradient-primary text-white font-semibold">
-                          {testimonial.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
-                        <p className="text-sm text-primary font-medium">{testimonial.role}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Formation: {testimonial.formation}
-                        </p>
+                      {/* Rating */}
+                      <div className="mb-4">
+                        {renderStars(testimonial.rating)}
                       </div>
-                    </div>
 
-                    {/* Company Badge */}
-                    <div className="mt-4 inline-block">
-                      <span className="px-3 py-1 bg-gradient-secondary text-xs font-medium text-primary rounded-full">
-                        {testimonial.company}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+                      {/* Content */}
+                      <p className="text-muted-foreground mb-6 leading-relaxed italic text-sm">
+                        "{testimonial.content}"
+                      </p>
+
+                      {/* Author Info */}
+                      <div className="flex items-start space-x-4">
+                        <motion.div whileHover={{ scale: 1.1 }}>
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                            <AvatarFallback className="bg-gradient-primary text-white font-semibold">
+                              {testimonial.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                        </motion.div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                          <p className="text-sm text-primary font-medium">{testimonial.role}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Formation: {testimonial.formation}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Company Badge */}
+                      <motion.div 
+                        className="mt-4 inline-block"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <span className="px-3 py-1 bg-gradient-secondary text-xs font-medium text-primary rounded-full">
+                          {testimonial.company}
+                        </span>
+                      </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -166,20 +213,34 @@ const Testimonials = () => {
         </Carousel>
 
         {/* Success Stats */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          <div className="text-center animate-fade-in">
-            <div className="text-4xl font-bold text-primary mb-2">95%</div>
-            <div className="text-muted-foreground">Taux de satisfaction</div>
-          </div>
-          <div className="text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="text-4xl font-bold text-primary mb-2">4.8/5</div>
-            <div className="text-muted-foreground">Note moyenne</div>
-          </div>
-          <div className="text-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className="text-4xl font-bold text-primary mb-2">92%</div>
-            <div className="text-muted-foreground">Recommandent nos formations</div>
-          </div>
-        </div>
+        <motion.div 
+          className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+        >
+          {[
+            { number: "95%", label: "Taux de satisfaction" },
+            { number: "4.8/5", label: "Note moyenne" },
+            { number: "92%", label: "Recommandent nos formations" },
+          ].map((stat, index) => (
+            <motion.div 
+              key={stat.label}
+              className="text-center"
+              variants={staggerItem}
+            >
+              <motion.div 
+                className="text-4xl font-bold text-primary mb-2"
+                whileHover={{ scale: 1.15 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {stat.number}
+              </motion.div>
+              <div className="text-muted-foreground">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
