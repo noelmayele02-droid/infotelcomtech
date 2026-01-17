@@ -1,15 +1,102 @@
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { useState } from "react";
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ScrollAnimationWrapper, ParallaxWrapper, staggerContainer, staggerItem } from "./ScrollAnimationWrapper";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  firstName: z.string().trim().min(1, "Prénom requis").max(100),
+  lastName: z.string().trim().min(1, "Nom requis").max(100),
+  email: z.string().trim().email("Email invalide").max(255),
+  phone: z.string().max(20).optional(),
+  formation: z.string().max(100).optional(),
+  message: z.string().trim().min(10, "Message trop court (min 10 caractères)").max(1000),
+});
 
 const Contact = () => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    formation: "",
+    message: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    setErrors((prev) => ({ ...prev, [id]: "" }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted");
+    
+    try {
+      const validated = contactSchema.parse({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        formation: formData.formation || undefined,
+        message: formData.message,
+      });
+
+      setLoading(true);
+
+      const { error } = await supabase.from("contact_requests").insert({
+        first_name: validated.firstName,
+        last_name: validated.lastName,
+        email: validated.email,
+        phone: validated.phone || null,
+        formation: validated.formation || null,
+        message: validated.message,
+        user_id: user?.id || null,
+      });
+
+      if (error) {
+        toast.error("Erreur lors de l'envoi du message");
+        console.error("Contact form error:", error);
+        return;
+      }
+
+      setSubmitted(true);
+      toast.success("Message envoyé avec succès !");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        formation: "",
+        message: "",
+      });
+
+      // Reset submitted state after 5 seconds
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const contactInfo = [
@@ -149,114 +236,175 @@ const Contact = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <motion.div 
-                          className="space-y-2"
-                          whileFocus={{ scale: 1.02 }}
+                    <AnimatePresence mode="wait">
+                      {submitted ? (
+                        <motion.div
+                          key="success"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="text-center py-12"
                         >
-                          <label htmlFor="firstName" className="text-sm font-medium text-foreground">
-                            Prénom *
-                          </label>
-                          <Input 
-                            id="firstName"
-                            placeholder="Votre prénom"
-                            required
-                            className="border-border focus:ring-primary transition-all duration-300"
-                          />
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                          >
+                            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
+                          </motion.div>
+                          <h3 className="text-xl font-bold text-foreground mb-2">
+                            Message envoyé !
+                          </h3>
+                          <p className="text-muted-foreground">
+                            Nous vous répondrons dans les plus brefs délais.
+                          </p>
                         </motion.div>
-                        <div className="space-y-2">
-                          <label htmlFor="lastName" className="text-sm font-medium text-foreground">
-                            Nom *
-                          </label>
-                          <Input 
-                            id="lastName"
-                            placeholder="Votre nom"
-                            required
-                            className="border-border focus:ring-primary transition-all duration-300"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium text-foreground">
-                          Email *
-                        </label>
-                        <Input 
-                          id="email"
-                          type="email"
-                          placeholder="votre.email@exemple.com"
-                          required
-                          className="border-border focus:ring-primary transition-all duration-300"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="phone" className="text-sm font-medium text-foreground">
-                          Téléphone
-                        </label>
-                        <Input 
-                          id="phone"
-                          type="tel"
-                          placeholder="068498792"
-                          className="border-border focus:ring-primary transition-all duration-300"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="formation" className="text-sm font-medium text-foreground">
-                          Formation d'intérêt
-                        </label>
-                        <select 
-                          id="formation"
-                          className="w-full p-3 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                      ) : (
+                        <motion.form
+                          key="form"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onSubmit={handleSubmit}
+                          className="space-y-6"
                         >
-                          <option value="">Sélectionnez une formation</option>
-                          <option value="dev-fullstack">Développement Web Full Stack</option>
-                          <option value="cybersecurity">Cybersécurité & Ethical Hacking</option>
-                          <option value="marketing-digital">Marketing Digital & Design</option>
-                          <option value="ia">Intelligence Artificielle</option>
-                          <option value="devops">DevOps & Cloud Computing</option>
-                          <option value="ux-ui">UX/UI Design</option>
-                          <option value="reseau-admin">Réseau Informatique et Administration</option>
-                          <option value="maintenance">Maintenance Informatique</option>
-                          <option value="intro-web">Introduction à la Programmation Web</option>
-                          <option value="autre">Autre</option>
-                        </select>
-                      </div>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label htmlFor="firstName" className="text-sm font-medium text-foreground">
+                                Prénom *
+                              </label>
+                              <Input 
+                                id="firstName"
+                                placeholder="Votre prénom"
+                                value={formData.firstName}
+                                onChange={handleChange}
+                                className={`border-border focus:ring-primary transition-all duration-300 ${errors.firstName ? "border-destructive" : ""}`}
+                              />
+                              {errors.firstName && (
+                                <p className="text-xs text-destructive">{errors.firstName}</p>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <label htmlFor="lastName" className="text-sm font-medium text-foreground">
+                                Nom *
+                              </label>
+                              <Input 
+                                id="lastName"
+                                placeholder="Votre nom"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                                className={`border-border focus:ring-primary transition-all duration-300 ${errors.lastName ? "border-destructive" : ""}`}
+                              />
+                              {errors.lastName && (
+                                <p className="text-xs text-destructive">{errors.lastName}</p>
+                              )}
+                            </div>
+                          </div>
 
-                      <div className="space-y-2">
-                        <label htmlFor="message" className="text-sm font-medium text-foreground">
-                          Message *
-                        </label>
-                        <Textarea 
-                          id="message"
-                          placeholder="Décrivez votre projet ou posez vos questions..."
-                          rows={5}
-                          required
-                          className="border-border focus:ring-primary resize-none transition-all duration-300"
-                        />
-                      </div>
+                          <div className="space-y-2">
+                            <label htmlFor="email" className="text-sm font-medium text-foreground">
+                              Email *
+                            </label>
+                            <Input 
+                              id="email"
+                              type="email"
+                              placeholder="votre.email@exemple.com"
+                              value={formData.email}
+                              onChange={handleChange}
+                              className={`border-border focus:ring-primary transition-all duration-300 ${errors.email ? "border-destructive" : ""}`}
+                            />
+                            {errors.email && (
+                              <p className="text-xs text-destructive">{errors.email}</p>
+                            )}
+                          </div>
 
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Button 
-                          type="submit"
-                          className="w-full bg-gradient-primary hover:opacity-90 transition-opacity group"
-                          size="lg"
-                        >
-                          <Send className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                          Envoyer le message
-                        </Button>
-                      </motion.div>
+                          <div className="space-y-2">
+                            <label htmlFor="phone" className="text-sm font-medium text-foreground">
+                              Téléphone
+                            </label>
+                            <Input 
+                              id="phone"
+                              type="tel"
+                              placeholder="068498792"
+                              value={formData.phone}
+                              onChange={handleChange}
+                              className="border-border focus:ring-primary transition-all duration-300"
+                            />
+                          </div>
 
-                      <p className="text-xs text-muted-foreground text-center">
-                        En envoyant ce formulaire, vous acceptez d'être contacté par notre équipe 
-                        concernant votre demande de formation.
-                      </p>
-                    </form>
+                          <div className="space-y-2">
+                            <label htmlFor="formation" className="text-sm font-medium text-foreground">
+                              Formation d'intérêt
+                            </label>
+                            <select 
+                              id="formation"
+                              value={formData.formation}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                            >
+                              <option value="">Sélectionnez une formation</option>
+                              <option value="dev-fullstack">Développement Web Full Stack</option>
+                              <option value="cybersecurity">Cybersécurité & Ethical Hacking</option>
+                              <option value="marketing-digital">Marketing Digital & Design</option>
+                              <option value="ia">Intelligence Artificielle</option>
+                              <option value="devops">DevOps & Cloud Computing</option>
+                              <option value="ux-ui">UX/UI Design</option>
+                              <option value="reseau-admin">Réseau Informatique et Administration</option>
+                              <option value="maintenance">Maintenance Informatique</option>
+                              <option value="intro-web">Introduction à la Programmation Web</option>
+                              <option value="autre">Autre</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label htmlFor="message" className="text-sm font-medium text-foreground">
+                              Message *
+                            </label>
+                            <Textarea 
+                              id="message"
+                              placeholder="Décrivez votre projet ou posez vos questions..."
+                              rows={5}
+                              value={formData.message}
+                              onChange={handleChange}
+                              className={`border-border focus:ring-primary resize-none transition-all duration-300 ${errors.message ? "border-destructive" : ""}`}
+                            />
+                            {errors.message && (
+                              <p className="text-xs text-destructive">{errors.message}</p>
+                            )}
+                          </div>
+
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Button 
+                              type="submit"
+                              className="w-full bg-gradient-primary hover:opacity-90 transition-opacity group"
+                              size="lg"
+                              disabled={loading}
+                            >
+                              {loading ? (
+                                <motion.div
+                                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                />
+                              ) : (
+                                <>
+                                  <Send className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                  Envoyer le message
+                                </>
+                              )}
+                            </Button>
+                          </motion.div>
+
+                          <p className="text-xs text-muted-foreground text-center">
+                            En envoyant ce formulaire, vous acceptez d'être contacté par notre équipe 
+                            concernant votre demande de formation.
+                          </p>
+                        </motion.form>
+                      )}
+                    </AnimatePresence>
                   </CardContent>
                 </Card>
               </motion.div>
