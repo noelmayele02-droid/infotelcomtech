@@ -1,12 +1,25 @@
 import { useState, useEffect } from "react";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X, GraduationCap, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -28,6 +41,18 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Déconnexion réussie");
+  };
+
+  const getInitials = () => {
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name[0]}${user.user_metadata.last_name[0]}`.toUpperCase();
+    }
+    return user?.email?.[0].toUpperCase() || "U";
+  };
+
   return (
     <motion.header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -43,9 +68,10 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <motion.div 
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 cursor-pointer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => scrollToSection("#accueil")}
           >
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
@@ -90,21 +116,50 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* CTA Button Desktop */}
+          {/* Auth Section Desktop */}
           <motion.div 
-            className="hidden md:flex"
+            className="hidden md:flex items-center gap-4"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                onClick={() => scrollToSection("#contact")}
-                className="bg-gradient-primary hover:opacity-90 transition-opacity"
-              >
-                Nous contacter
-              </Button>
-            </motion.div>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <motion.button
+                    className="flex items-center gap-2"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Avatar className="w-9 h-9 border-2 border-primary/20">
+                      <AvatarFallback className="bg-gradient-primary text-white text-sm font-semibold">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </motion.button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-sm font-medium">
+                    {user.email}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={() => navigate("/auth")}
+                  className="bg-gradient-primary hover:opacity-90 transition-opacity"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Connexion
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Menu Mobile */}
@@ -151,12 +206,27 @@ const Header = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.5 }}
                 >
-                  <Button 
-                    onClick={() => scrollToSection("#contact")}
-                    className="w-full bg-gradient-primary hover:opacity-90 transition-opacity mt-4"
-                  >
-                    Nous contacter
-                  </Button>
+                  {user ? (
+                    <Button 
+                      onClick={handleSignOut}
+                      variant="outline"
+                      className="w-full mt-4"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        navigate("/auth");
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full bg-gradient-primary hover:opacity-90 transition-opacity mt-4"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Connexion
+                    </Button>
+                  )}
                 </motion.div>
               </nav>
             </motion.div>
